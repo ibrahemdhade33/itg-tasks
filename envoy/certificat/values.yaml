@@ -1,0 +1,12 @@
+# values.yaml
+namespace: envoy-gateway-system
+domain: test.local
+
+issuer:
+  name: selfsigned-issuer
+
+certificate:
+  name: test-cert
+  secretName: test-cert
+  duration: 8760h
+  renewBefore: 360h
