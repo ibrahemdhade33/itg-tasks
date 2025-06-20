@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: auto-discover-personal-apps
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions:
+    - missingkey=error
+  generators:
+    - scmProvider:
+        github:
+          organization: itg-tasks
+          tokenRef:
+            secretName: github-token-secret
+            key: token
+        cloneProtocol: https
+        filters:
+          - repositoryMatch: "^app[0-9]+$"
+            pathsExist: [argocd]
+  template:
+    metadata:
+      name: '{{ .repository }}'
+    spec:
+      project: default
+      source:
+        repoURL: '{{ .repoURL }}'
+        targetRevision: '{{ .branch }}'   # ✅ Use branch name here
+        path: argocd
+        helm:
+          valueFiles:
+            - values.yaml
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{ repository }}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true

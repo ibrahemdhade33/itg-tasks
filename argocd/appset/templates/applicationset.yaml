@@ -1,0 +1,41 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: {{ .Values.applicationset.name | default "auto-discover-personal-apps" }}
+  namespace: {{ .Values.namespace | default "argocd" }}
+spec:
+  goTemplate: true
+  goTemplateOptions:
+    - missingkey=error
+  generators:
+    - scmProvider:
+        github:
+          organization: {{ .Values.github.organization }}
+          tokenRef:
+            secretName: {{ .Values.github.secretName | default "github-token-secret" }}
+            key: {{ .Values.github.secretKey | default "token" }}
+        cloneProtocol: https
+        filters:
+          - repositoryMatch: {{ .Values.github.repoPattern | quote }}
+            pathsExist: [argocd]
+  template:
+    metadata:
+      name: '{{`{{ .repository }}`}}'
+    spec:
+      project: {{ .Values.project | default "default" }}
+      source:
+        repoURL: '{{`{{ .url }}`}}'
+        targetRevision: HEAD
+        path: {{ .Values.repoPath | default "argocd" }}
+        helm:
+          valueFiles:
+            - values.yaml
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{`{{ .repository }}`}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

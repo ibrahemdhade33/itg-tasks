@@ -1,0 +1,14 @@
+namespace: argocd
+
+project: default
+
+github:
+  organization: itg-tasks
+  secretName: github-token-secret
+  secretKey: token
+  repoPattern: "^app[0-9]+$"
+
+repoPath: argocd
+
+applicationset:
+  name: auto-discover-personal-apps
