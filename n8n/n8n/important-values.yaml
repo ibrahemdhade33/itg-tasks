@@ -1,0 +1,180 @@
+# -- Configuration for private npm registry
+npmRegistry:
+  # -- Enable private npm registry
+  enabled: false
+  # -- URL of the private npm registry (e.g., https://registry.npmjs.org/)
+  url: ""
+  # -- Name of the Kubernetes secret containing npm registry credentials
+  secretName: ""
+  # -- Key in the secret for the .npmrc content or auth token
+  secretKey: "npmrc"
+  # -- Custom .npmrc content (optional, overrides secret if provided)
+  customNpmrc: ""
+
+# -- Node configurations for built-in and external npm packages
+nodes:
+  # -- Enable built-in node functions (e.g., HTTP Request, Code Node, etc.)
+  builtin:
+    # -- Enable built-in modules for the Code node
+    enabled: false
+    # -- List of built-in Node.js modules to allow in the Code node (e.g., crypto, fs). Use '*' to allow all.
+    modules: []
+      # - crypto
+    # - fs
+  # -- External npm packages to install and allow in the Code node
+  external:
+    # -- Allow all external npm packages
+    allowAll: false
+    # -- Whether to reinstall missing packages. For more information, see https://docs.n8n.io/integrations/community-nodes/troubleshooting/#error-missing-packages
+    reinstallMissingPackages: false
+    # -- List of npm package names and versions (e.g., "package-name@1.0.0")
+    packages: []
+      # - "moment@2.29.4"
+    # - "lodash@4.17.21"
+  # -- Image for the init container to install npm packages
+  initContainer:
+    # -- Image for the init container to install npm packages
+    image:
+      # -- Repository for the init container to install npm packages
+      repository: node
+      # -- Tag for the init container to install npm packages
+      tag: "20-alpine"
+      # -- Pull policy for the init container to install npm packages
+      pullPolicy: IfNotPresent
+    # -- Resources for the init container
+    resources: {}
+      # requests:
+      #   cpu: 100m
+      #   memory: 128Mi
+      # limits:
+      #   cpu: 500m
+    #   memory: 256Mi
+
+
+
+# -- This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+service:
+  # -- This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+  type: LoadBalancer
+  # -- This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
+  port: 5678
+  # -- Default Service name
+  name: http
+  # -- Additional service annotations
+  annotations: {}
+
+sentry:
+  # -- Whether sentry is enabled.
+  enabled: false
+  # -- Sentry DSN for backend.
+  backendDsn: ""
+  # -- Sentry DSN for frontend.
+  frontendDsn: ""
+  # -- Sentry DSN for external task runners.
+  externalTaskRunnersDsn: ""
+
+
+
+api:
+  # -- Whether to enable the Public API
+  enabled: true
+  # -- Path segment for the Public API
+  path: api
+  # -- Whether to enable the Swagger UI for the Public API
+  swagger:
+    enabled: true
+
+# -- Worker node configurations
+worker:
+  # -- Use `regular` to use main node as executer, or use `queue` to have worker nodes
+  mode: regular
+
+  # -- number of concurrency for each worker
+  concurrency: 10
+
+  # -- Static number of workers. If allNodes or autoscaling is enabled, this value will be ignored.
+  count: 2
+
+
+# -- Webhook node configurations
+webhook:
+  # -- Use `regular` to use main node as webhook node, or use `queue` to have webhook nodes
+  mode: regular
+
+  # -- Webhook url together with http or https schema
+  url: ""
+
+  # -- Static number of webhooks. If allNodes or autoscaling is enabled, this value will be ignored.
+  count: 2
+
+  # -- If true, all k8s nodes will deploy exatly one webhook pod
+  allNodes: false
+
+
+# -- Task runners mode. Please follow the documentation for more information: https://docs.n8n.io/hosting/configuration/task-runners/
+taskRunners:
+  # -- Use `internal` to use internal task runner, or use `external` to have external sidecar task runner. For more information please follow the documentation: https://docs.n8n.io/hosting/configuration/task-runners/#task-runner-modes
+  mode: internal
+  # -- The timeout for the task in seconds
+  taskTimeout: 60
+  # -- The heartbeat interval for the task in seconds
+  taskHeartbeatInterval: 30
+  # -- The maximum concurrency for the task
+  maxConcurrency: 5
+
+  # -- The address for the broker of the external task runner
+  broker:
+    # -- The address for the broker of the external task runner
+    address: "127.0.0.1"
+    # -- The port for the broker of the external task runner
+    port: 5679
+
+timezone: "Europe/Berlin"
+
+# -- The service monitor configuration. Please refer to the following link for more information: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api-reference/api.md
+serviceMonitor:
+  # -- When set true then use a ServiceMonitor to configure scraping
+  enabled: false
+  # -- Set the namespace the ServiceMonitor should be deployed. If empty, the ServiceMonitor will be deployed in the same namespace as the n8n chart.
+  namespace: ""
+  # -- Set how frequently Prometheus should scrape
+  interval: 30s
+
+#can use external redis
+redis:
+  # -- Enable redis
+  enabled: true
+  architecture: standalone
+
+  master:
+    persistence:
+      enabled: false
+
+#can use external postgres
+postgresql:
+  # -- Enable postgresql
+  enabled: true
+  architecture: standalone
+
+  primary:
+    service:
+      ports:
+        postgresql: 5432
+
+    persistence:
+      enabled: true
+      existingClaim: ""
+
+  auth:
+    username: ""
+    password: ""
+    # -- The name of the PostgreSQL database. For more information: https://docs.n8n.io/hosting/configuration/supported-databases-settings/#required-permissions
+    database: "n8n"
+
+
+
+#also can use azure blob storage or s3 for binary data storage, but here will enable minio to make the deployment simple
+
+
+
+#can configure ingresses and all other things
